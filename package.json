@@ -25,7 +25,11 @@
     "@nestjs/platform-express": "^7.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.5.4"
+    "rxjs": "^6.5.4",
+    "roit-environment": "^1.1.1",
+    "roit-response-api-node": "^1.0.10",
+    "@roit/roit-firestore-connector": "^1.0.25",
+    "apidoc": "^0.23.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.0.0",
