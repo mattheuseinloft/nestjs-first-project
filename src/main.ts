@@ -3,6 +3,7 @@ import { AppModule } from './AppModule'
 import { Environment } from 'roit-environment';
 import { Logger } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
+import { OkResponseInterceptor } from './interceptors/ok-response.interceptor';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
@@ -10,6 +11,7 @@ async function bootstrap() {
     app.use(bodyParser.json({ limit: '10mb' }))
     app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
     app.enableCors()
+    app.useGlobalInterceptors(new OkResponseInterceptor())
     await app.listen(Environment.getProperty("port"))
     Logger.log(`Listening on http://localhost:${Environment.getProperty("port")}/`)
 
