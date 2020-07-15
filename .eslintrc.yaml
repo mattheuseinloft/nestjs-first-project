@@ -57,7 +57,7 @@ rules:
     [error, { anonymous: always, named: never, asyncArrow: always }]
   yoda: error
   indent: [error, 4, { SwitchCase: 1, CallExpression: { arguments: first } }]
-  max-len: [error, { code: 80 }]
+  max-len: [error, { code: 100 }]
   spaced-comment: error
   capitalized-comments: [error, always, { ignoreInlineComments: true }]
   no-unused-expressions: error
