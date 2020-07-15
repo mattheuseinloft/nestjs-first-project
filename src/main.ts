@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core'
+import { Environment } from 'roit-environment'
+import { Logger } from '@nestjs/common'
+import * as bodyParser from 'body-parser'
+
 import { AppModule } from './AppModule'
-import { Environment } from 'roit-environment';
-import { Logger } from '@nestjs/common';
-import * as bodyParser from 'body-parser';
-import { OkResponseInterceptor } from './interceptors/ok-response.interceptor';
+import { OkResponseInterceptor } from './interceptors/ok-response.interceptor'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
@@ -12,9 +13,8 @@ async function bootstrap() {
     app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
     app.enableCors()
     app.useGlobalInterceptors(new OkResponseInterceptor())
-    await app.listen(Environment.getProperty("port"))
-    Logger.log(`Listening on http://localhost:${Environment.getProperty("port")}/`)
-
+    await app.listen(Environment.getProperty('port'))
+    Logger.log(`Listening on http://localhost:${Environment.getProperty('port')}/`)
 }
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap()
