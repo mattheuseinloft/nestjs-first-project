@@ -5,6 +5,7 @@ import * as bodyParser from 'body-parser'
 
 import { AppModule } from './AppModule'
 import { OkResponseInterceptor } from './interceptors/ok-response.interceptor'
+import { HttpExceptionFilter } from '../src/exception/HttpExceptionFilter'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
@@ -12,9 +13,10 @@ async function bootstrap() {
     app.use(bodyParser.json({ limit: '10mb' }))
     app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
     app.enableCors()
+    app.useGlobalFilters(new HttpExceptionFilter)
     app.useGlobalInterceptors(new OkResponseInterceptor())
     await app.listen(Environment.getProperty('port'))
-    Logger.log(`Listening on http://localhost:${Environment.getProperty('port')}/`)
+    Logger.debug(`Listening on http://localhost:${Environment.getProperty('port')}/`)
 }
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap()
