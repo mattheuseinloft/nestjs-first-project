@@ -5,7 +5,7 @@ import * as bodyParser from 'body-parser'
 
 import { AppModule } from './AppModule'
 import { OkResponseInterceptor } from './interceptors/ok-response.interceptor'
-import { HttpExceptionFilter } from '../src/exception/HttpExceptionFilter'
+import { HttpExceptionFilter } from './exception/HttpExceptionFilter'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
