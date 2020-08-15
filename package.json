@@ -27,10 +27,12 @@
     "@roit/roit-firestore-connector": "^1.0.25",
     "@roit/roit-response-handler": "0.0.11",
     "apidoc": "^0.23.0",
+    "axios": "^0.19.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "roit-environment": "^1.1.1",
-    "rxjs": "^6.5.4"
+    "rxjs": "^6.5.4",
+    "uuidv4": "^6.2.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.0.0",

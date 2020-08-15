@@ -13,7 +13,7 @@ async function bootstrap() {
     app.use(bodyParser.json({ limit: '10mb' }))
     app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
     app.enableCors()
-    app.useGlobalFilters(new HttpExceptionFilter)
+    app.useGlobalFilters(new HttpExceptionFilter())
     app.useGlobalInterceptors(new OkResponseInterceptor())
     await app.listen(Environment.getProperty('port'))
     Logger.debug(`Listening on http://localhost:${Environment.getProperty('port')}/`)
