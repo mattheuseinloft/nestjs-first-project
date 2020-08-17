@@ -23,19 +23,21 @@ export class UsersService {
         return this.users
     }
 
-    getById(id: string): User | undefined {
-        return this.users.find(user => user.id === id)
+    getById(id: string): User {
+        const user = this.users.find(user => user.id === id)
+
+        if (!user) {
+            throw Error('User does not exists!')
+        }
+
+        return user
     }
 
-    async create({ name, age, github_user, cep }: IUserData): Promise<User | null> {
+    async create({ name, age, github_user, cep }: IUserData): Promise<User> {
         const responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
 
-        // Username does not exists in Github
-        if (responseGithub.data.total_count !== 1) {
-            // eslint-disable-next-line no-console
-            console.log('Username does not exists in Github')
-
-            return null
+        if (responseGithub.data.total_count === 0) {
+            throw Error('Github username is invalid!')
         }
 
         const {
@@ -44,46 +46,23 @@ export class UsersService {
             repos_url
         }: IGithubData = responseGithub.data.items[0]
 
-        // Cep is undefined
-        if (!cep) {
-            // eslint-disable-next-line no-console
-            console.log('Cep is undefined')
-
-            return null
-        }
-
-        // Cep has more than 8 digits or is empty
         if (cep.length > 8 || cep.length === 0) {
-            // eslint-disable-next-line no-console
-            console.log('Cep has more than 8 digits or is empty')
-
-            return null
+            throw Error('CEP has more than 8 digits or is empty!')
         }
 
-        // Cep has a non-numeric character
         if (!RegExp('^[0-9]*$').test(cep)) {
-            // eslint-disable-next-line no-console
-            console.log('Cep has a non-numeric character')
-
-            return null
+            throw Error('CEP has a non-numeric character!')
         }
 
         let responseViacep
         try {
             responseViacep = await viacepAPI.get<IAddress>(`${cep}/json/`)
         } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log('Error while trying to get data from ViaCEP')
-
-            return null
+            throw Error('Unexpected error in ViaCEP!')
         }
 
-        // CEP is invalid
         if (responseViacep.data.erro === true) {
-            // eslint-disable-next-line no-console
-            console.log('CEP is invalid')
-
-            return null
+            throw Error('CEP is invalid!')
         }
 
         const user: User = {
@@ -103,26 +82,17 @@ export class UsersService {
         return user
     }
 
-    async update(id: string, { name, age, github_user, cep }: IUserData): Promise<User | null> {
-        if (!id) {
-            // eslint-disable-next-line no-console
-            console.log('Id is undefined')
-
-            return null
-        }
-
+    async update(id: string, { name, age, github_user, cep }: IUserData): Promise<User> {
         const userFromArray = this.getById(id)
 
-        // User with given id does not exists
         if (!userFromArray) {
-            return null
+            throw Error('User does not exists!')
         }
 
         const responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
 
-        // Username does not exists in Github
         if (responseGithub.data.total_count === 0) {
-            return null
+            throw Error('Github username is invalid!')
         }
 
         const {
@@ -131,69 +101,45 @@ export class UsersService {
             repos_url
         }: IGithubData = responseGithub.data.items[0]
 
-        // Cep is undefined
-        if (!cep) {
-            // eslint-disable-next-line no-console
-            console.log('Cep is undefined')
-
-            return null
-        }
-
-        // Cep has more than 8 digits or is empty
         if (cep.length > 8 || cep.length === 0) {
-            // eslint-disable-next-line no-console
-            console.log('Cep has more than 8 digits or is empty')
-
-            return null
+            throw Error('CEP has more than 8 digits or is empty!')
         }
 
-        // Cep has a non-numeric character
         if (!RegExp('^[0-9]*$').test(cep)) {
-            // eslint-disable-next-line no-console
-            console.log('Cep has a non-numeric character')
-
-            return null
+            throw Error('CEP has a non-numeric character!')
         }
 
         let responseViacep
         try {
             responseViacep = await viacepAPI.get<IAddress>(`${cep}/json/`)
         } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log('Error while trying to get data from ViaCEP')
-
-            return null
+            throw Error('Unexpected error in ViaCEP!')
         }
 
-        // CEP is invalid
         if (responseViacep.data.erro === true) {
-            // eslint-disable-next-line no-console
-            console.log('CEP is invalid')
-
-            return null
+            throw Error('CEP is invalid!')
         }
 
-        userFromArray.name = name
-        userFromArray.age = age
-        userFromArray.github_data = { login, avatar_url, repos_url }
-        userFromArray.address = responseViacep.data
+        Object.assign(userFromArray, {
+            name,
+            age,
+            github_data: { login, avatar_url, repos_url },
+            address: responseViacep.data
+        })
 
         return userFromArray
     }
 
-    delete(id: string): void | null {
-        if (!id) {
-            // eslint-disable-next-line no-console
-            console.log('Id is undefined')
-
-            return null
-        }
-
+    delete(id: string): null {
         const index = this.users.findIndex(user => user.id === id)
 
-        if (index !== -1) {
-            this.users.splice(index, 1)
+        if (index === -1) {
+            throw Error('User does not exists!')
         }
+
+        this.users.splice(index, 1)
+
+        return null
     }
 
 }
