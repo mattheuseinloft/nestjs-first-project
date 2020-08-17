@@ -15,8 +15,19 @@ export class UsersController {
     }
 
     @Get(':id')
-    getById(@Param('id') id: string): User | undefined {
+    getById(@Param('id') id: string): User | null {
+        if (!id) {
+            // eslint-disable-next-line no-console
+            console.log('Id is undefined')
+
+            return null
+        }
+
         const user = this.usersService.getById(id)
+
+        if (!user) {
+            return null
+        }
 
         return user
     }
@@ -32,7 +43,7 @@ export class UsersController {
     }
 
     @Delete(':id')
-    delete(@Param('id') id: string): void {
+    delete(@Param('id') id: string): void | null {
         this.usersService.delete(id)
     }
 
