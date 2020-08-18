@@ -1,28 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing'
 
-import { UsersService } from '../services/UsersService'
+import ListUsersService from '../services/ListUsersService'
+import CreateUserService from '../services/CreateUserService'
+import ShowUserService from '../services/ShowUserService'
+import UpdateUserService from '../services/UpdateUserService'
+import DeleteUserService from '../services/DeleteUserService'
 import { User } from '../models/User'
 import FakeUsersRepository from '../repositories/fakes/FakeUsersRepository'
 
 import { UsersController } from './UsersController'
 
 describe('UsersController', () => {
-    let usersService: UsersService
+    let listUsersService: ListUsersService
+    let createUserService: CreateUserService
+    let showUserService: ShowUserService
+    let updateUserService: UpdateUserService
+    let deleteUserService: DeleteUserService
 
     beforeEach(async () => {
         const app: TestingModule = await Test.createTestingModule({
             controllers: [UsersController],
-            providers: [UsersService, {
-                provide: 'UsersRepository',
-                useClass: FakeUsersRepository
-            }]
+            providers: [
+                ListUsersService,
+                CreateUserService,
+                ShowUserService,
+                UpdateUserService,
+                DeleteUserService,
+                {
+                    provide: 'UsersRepository',
+                    useClass: FakeUsersRepository
+                }
+            ]
         }).compile()
 
-        usersService = app.get<UsersService>(UsersService)
+        listUsersService = app.get<ListUsersService>(ListUsersService)
+        createUserService = app.get<CreateUserService>(CreateUserService)
+        showUserService = app.get<ShowUserService>(ShowUserService)
+        updateUserService = app.get<UpdateUserService>(UpdateUserService)
+        deleteUserService = app.get<DeleteUserService>(DeleteUserService)
     })
 
     describe('index', () => {
-        it('should be able to get all users', () => {
+        it('should be able to get all users', async () => {
             const user1: User = {
                 id: 'user-id',
                 name: 'John Doe',
@@ -62,9 +81,10 @@ describe('UsersController', () => {
             }
 
             const result = [user1, user2]
-            jest.spyOn(usersService, 'getAllUsers').mockImplementation(() => result)
+            // eslint-disable-next-line @typescript-eslint/require-await
+            jest.spyOn(listUsersService, 'execute').mockImplementation(async () => result)
 
-            expect(usersService.getAllUsers()).toBe(result)
+            expect(await listUsersService.execute()).toBe(result)
         })
     })
 
@@ -90,20 +110,20 @@ describe('UsersController', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/require-await
-            jest.spyOn(usersService, 'getUserById').mockImplementation(async () => user)
+            jest.spyOn(showUserService, 'execute').mockImplementation(async () => user)
 
-            expect(await usersService.getUserById('user-id')).toBe(user)
+            expect(await showUserService.execute({ user_id: 'user-id' })).toBe(user)
         })
 
         it('should not be able to get a user that does not exists', async () => {
             // eslint-disable-next-line max-len
-            await expect(usersService.getUserById('non-existing-user-id')).rejects.toBeInstanceOf(Error)
+            await expect(showUserService.execute({ user_id: 'non-existing-user-id' })).rejects.toBeInstanceOf(Error)
         })
     })
 
     describe('create', () => {
         it('should be able to create a user', async () => {
-            expect(await usersService.createUser({
+            expect(await createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
@@ -113,7 +133,7 @@ describe('UsersController', () => {
 
         // eslint-disable-next-line max-len
         it('should not be able to create a user with a github username that does not exists', async () => {
-            await expect(usersService.createUser({
+            await expect(createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 cep: '12345678',
@@ -123,7 +143,7 @@ describe('UsersController', () => {
 
         // eslint-disable-next-line max-len
         it('should not be able to create a user with a cep with more or less than 8 digits', async () => {
-            await expect(usersService.createUser({
+            await expect(createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 cep: '123456789',
@@ -133,7 +153,7 @@ describe('UsersController', () => {
 
         // eslint-disable-next-line max-len
         it('should not be able to create a user with a cep with a non-numeric character', async () => {
-            await expect(usersService.createUser({
+            await expect(createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 cep: '123456a',
@@ -142,7 +162,7 @@ describe('UsersController', () => {
         })
 
         it('should not be able to create a user with a cep that does not exists', async () => {
-            await expect(usersService.createUser({
+            await expect(createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 cep: '00000000',
@@ -153,14 +173,15 @@ describe('UsersController', () => {
 
     describe('update', () => {
         it('should be able to update a user', async () => {
-            const user = await usersService.createUser({
+            const user = await createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
                 cep: '01001000'
             })
 
-            const updatedUser = await usersService.updateUser(user.id, {
+            const updatedUser = await updateUserService.execute({
+                user_id: user.id,
                 name: 'John Trê',
                 age: 33,
                 github_user: 'johntre',
@@ -174,7 +195,8 @@ describe('UsersController', () => {
         })
 
         it('should not be able to update a user that does not exists', async () => {
-            await expect(usersService.updateUser('non-existing-user-id', {
+            await expect(updateUserService.execute({
+                user_id: 'non-existing-user-id',
                 name: 'John Doe',
                 age: 32,
                 cep: '12345678',
@@ -203,9 +225,10 @@ describe('UsersController', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/require-await
-            jest.spyOn(usersService, 'createUser').mockImplementation(async () => user)
+            jest.spyOn(createUserService, 'execute').mockImplementation(async () => user)
 
-            await expect(usersService.updateUser(user.id, {
+            await expect(updateUserService.execute({
+                user_id: user.id,
                 name: 'John Doe',
                 age: 32,
                 cep: '01001000',
@@ -234,9 +257,10 @@ describe('UsersController', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/require-await
-            jest.spyOn(usersService, 'createUser').mockImplementation(async () => user)
+            jest.spyOn(createUserService, 'execute').mockImplementation(async () => user)
 
-            await expect(usersService.updateUser(user.id, {
+            await expect(updateUserService.execute({
+                user_id: user.id,
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
@@ -265,9 +289,10 @@ describe('UsersController', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/require-await
-            jest.spyOn(usersService, 'createUser').mockImplementation(async () => user)
+            jest.spyOn(createUserService, 'execute').mockImplementation(async () => user)
 
-            await expect(usersService.updateUser(user.id, {
+            await expect(updateUserService.execute({
+                user_id: user.id,
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
@@ -296,9 +321,10 @@ describe('UsersController', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/require-await
-            jest.spyOn(usersService, 'createUser').mockImplementation(async () => user)
+            jest.spyOn(createUserService, 'execute').mockImplementation(async () => user)
 
-            await expect(usersService.updateUser(user.id, {
+            await expect(updateUserService.execute({
+                user_id: user.id,
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
@@ -309,19 +335,19 @@ describe('UsersController', () => {
 
     describe('delete', () => {
         it('should be able to delete a user', async () => {
-            const user = await usersService.createUser({
+            const user = await createUserService.execute({
                 name: 'John Doe',
                 age: 32,
                 github_user: 'johndoe',
                 cep: '01001000'
             })
 
-            expect(await usersService.deleteUser(user.id)).toBe(null)
+            expect(await deleteUserService.execute({ user_id: user.id })).toBe(null)
         })
 
         it('should not be able to delete a user that does not exists', async () => {
             // eslint-disable-next-line max-len
-            await expect(usersService.deleteUser('non-existing-user-id')).rejects.toBeInstanceOf(Error)
+            await expect(deleteUserService.execute({ user_id: 'non-existing-user-id' })).rejects.toBeInstanceOf(Error)
         })
     })
 })

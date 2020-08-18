@@ -10,7 +10,8 @@ export default class FakeUsersRepository implements IUsersRepository {
 
     private users: User[] = [];
 
-    public findAll(): User[] {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async findAll(): Promise<User[]> {
         return this.users
     }
 

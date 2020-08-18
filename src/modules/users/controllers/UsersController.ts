@@ -10,8 +10,12 @@ import {
     HttpStatus
 } from '@nestjs/common'
 
-import { UsersService } from '../services/UsersService'
 import { User } from '../models/User'
+import ListUsersService from '../services/ListUsersService'
+import CreateUserService from '../services/CreateUserService'
+import ShowUserService from '../services/ShowUserService'
+import UpdateUserService from '../services/UpdateUserService'
+import DeleteUserService from '../services/DeleteUserService'
 
 interface IRequest {
     name: string
@@ -23,17 +27,23 @@ interface IRequest {
 @Controller('users')
 export class UsersController {
 
-    constructor(private readonly usersService: UsersService) { }
+    constructor(
+        private readonly listUsersService: ListUsersService,
+        private readonly createUserService: CreateUserService,
+        private readonly showUserService: ShowUserService,
+        private readonly updateUserService: UpdateUserService,
+        private readonly deleteUserService: DeleteUserService
+    ) { }
 
     @Get()
-    index(): User[] {
-        return this.usersService.getAllUsers()
+    async index(): Promise<User[]> {
+        return this.listUsersService.execute()
     }
 
     @Get(':id')
     async show(@Param('id') id: string): Promise<User> {
         try {
-            const user = await this.usersService.getUserById(id)
+            const user = await this.showUserService.execute({ user_id: id })
 
             return user
         } catch (error) {
@@ -54,7 +64,7 @@ export class UsersController {
         }
 
         try {
-            const user = await this.usersService.createUser({
+            const user = await this.createUserService.execute({
                 name,
                 age,
                 github_user,
@@ -83,7 +93,8 @@ export class UsersController {
         }
 
         try {
-            const user = await this.usersService.updateUser(id, {
+            const user = await this.updateUserService.execute({
+                user_id: id,
                 name,
                 age,
                 github_user,
@@ -102,7 +113,7 @@ export class UsersController {
     @Delete(':id')
     async delete(@Param('id') id: string): Promise<null> {
         try {
-            return await this.usersService.deleteUser(id)
+            return await this.deleteUserService.execute({ user_id: id })
         } catch (error) {
             throw new HttpException(
                 error,
