@@ -6,8 +6,10 @@ import IUsersRepository from '../repositories/IUsersRepository'
 @Injectable()
 class ListUsersService {
 
-    @Inject('UsersRepository')
-    private repository: IUsersRepository
+    constructor(
+        @Inject('UsersRepository')
+        private repository: IUsersRepository
+    ) { }
 
     public async execute(): Promise<User[]> {
         return this.repository.findAll()

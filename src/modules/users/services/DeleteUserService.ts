@@ -9,8 +9,10 @@ interface IRequest {
 @Injectable()
 class DeleteUserService {
 
-    @Inject('UsersRepository')
-    private repository: IUsersRepository
+    constructor(
+        @Inject('UsersRepository')
+        private repository: IUsersRepository
+    ) { }
 
     public async execute({ user_id }: IRequest): Promise<null> {
         const userExists = await this.repository.findById(user_id)

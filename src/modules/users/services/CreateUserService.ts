@@ -23,8 +23,10 @@ interface IRequest {
 @Injectable()
 class CreateUserService {
 
-    @Inject('UsersRepository')
-    private repository: IUsersRepository
+    constructor(
+        @Inject('UsersRepository')
+        private repository: IUsersRepository
+    ) { }
 
     public async execute({ name, age, github_user, cep }: IRequest): Promise<User> {
         let responseGithub

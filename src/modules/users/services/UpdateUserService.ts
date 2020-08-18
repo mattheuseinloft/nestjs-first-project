@@ -24,8 +24,10 @@ interface IRequest {
 @Injectable()
 class UpdateUserService {
 
-    @Inject('UsersRepository')
-    private repository: IUsersRepository
+    constructor(
+        @Inject('UsersRepository')
+        private repository: IUsersRepository
+    ) { }
 
     public async execute({ user_id, name, age, github_user, cep }: IRequest): Promise<User> {
         const user = await this.repository.findById(user_id)

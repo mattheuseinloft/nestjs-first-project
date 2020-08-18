@@ -10,8 +10,10 @@ interface IRequest {
 @Injectable()
 class ShowUserService {
 
-    @Inject('UsersRepository')
-    private repository: IUsersRepository
+    constructor(
+        @Inject('UsersRepository')
+        private repository: IUsersRepository
+    ) { }
 
     public async execute({ user_id }: IRequest): Promise<User> {
         const user = await this.repository.findById(user_id)
