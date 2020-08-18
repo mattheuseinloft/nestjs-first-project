@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common'
-import { uuid } from 'uuidv4'
+import { Injectable, Inject } from '@nestjs/common'
 
 import githubAPI from '../../config/githubAPI'
 import viacepAPI from '../../config/viacepAPI'
 import { User } from '../models/User'
 import IGithubData from '../dtos/IGithubData'
-import IUserData from '../dtos/IUserData'
 import IAddress from '../dtos/IAddress'
+import IUsersRepository from '../repositories/IUsersRepository'
 
 interface IGithubResponse {
     total_count: number
@@ -14,17 +13,25 @@ interface IGithubResponse {
     items: IGithubData[]
 }
 
+interface IRequest {
+    name: string
+    age: number
+    github_user: string
+    cep: string
+}
+
 @Injectable()
 export class UsersService {
 
-    users: User[] = [];
+    @Inject('UsersRepository')
+    private repository: IUsersRepository
 
-    getAll(): User[] {
-        return this.users
+    getAllUsers(): User[] {
+        return this.repository.findAll()
     }
 
-    getById(id: string): User {
-        const user = this.users.find(user => user.id === id)
+    async getUserById(id: string): Promise<User> {
+        const user = await this.repository.findById(id)
 
         if (!user) {
             throw Error('User does not exists!')
@@ -33,11 +40,16 @@ export class UsersService {
         return user
     }
 
-    async create({ name, age, github_user, cep }: IUserData): Promise<User> {
-        const responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
+    async createUser({ name, age, github_user, cep }: IRequest): Promise<User> {
+        let responseGithub
+        try {
+            responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
+        } catch (err) {
+            throw Error('Unexpected error from GitHub!')
+        }
 
         if (responseGithub.data.total_count === 0) {
-            throw Error('Github username is invalid!')
+            throw Error('Github username does not exists!')
         }
 
         const {
@@ -46,8 +58,8 @@ export class UsersService {
             repos_url
         }: IGithubData = responseGithub.data.items[0]
 
-        if (cep.length > 8 || cep.length === 0) {
-            throw Error('CEP has more than 8 digits or is empty!')
+        if (cep.length !== 8) {
+            throw Error('CEP must have 8 digits!')
         }
 
         if (!RegExp('^[0-9]*$').test(cep)) {
@@ -58,15 +70,14 @@ export class UsersService {
         try {
             responseViacep = await viacepAPI.get<IAddress>(`${cep}/json/`)
         } catch (err) {
-            throw Error('Unexpected error in ViaCEP!')
+            throw Error('Unexpected error from ViaCEP!')
         }
 
         if (responseViacep.data.erro === true) {
-            throw Error('CEP is invalid!')
+            throw Error('CEP does not exists!')
         }
 
-        const user: User = {
-            id: uuid(),
+        const user = await this.repository.create({
             name,
             age,
             github_data: {
@@ -75,24 +86,27 @@ export class UsersService {
                 repos_url
             },
             address: responseViacep.data
-        }
-
-        this.users.push(user)
+        })
 
         return user
     }
 
-    async update(id: string, { name, age, github_user, cep }: IUserData): Promise<User> {
-        const userFromArray = this.getById(id)
+    async updateUser(id: string, { name, age, github_user, cep }: IRequest): Promise<User> {
+        const user = await this.repository.findById(id)
 
-        if (!userFromArray) {
+        if (!user) {
             throw Error('User does not exists!')
         }
 
-        const responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
+        let responseGithub
+        try {
+            responseGithub = await githubAPI.get<IGithubResponse>(`search/users?q=${github_user}`)
+        } catch (err) {
+            throw Error('Unexpected error from GitHub!')
+        }
 
         if (responseGithub.data.total_count === 0) {
-            throw Error('Github username is invalid!')
+            throw Error('Github username does not exists!')
         }
 
         const {
@@ -101,8 +115,8 @@ export class UsersService {
             repos_url
         }: IGithubData = responseGithub.data.items[0]
 
-        if (cep.length > 8 || cep.length === 0) {
-            throw Error('CEP has more than 8 digits or is empty!')
+        if (cep.length !== 8) {
+            throw Error('CEP must have 8 digits!')
         }
 
         if (!RegExp('^[0-9]*$').test(cep)) {
@@ -113,33 +127,33 @@ export class UsersService {
         try {
             responseViacep = await viacepAPI.get<IAddress>(`${cep}/json/`)
         } catch (err) {
-            throw Error('Unexpected error in ViaCEP!')
+            throw Error('Unexpected error from ViaCEP!')
         }
 
         if (responseViacep.data.erro === true) {
-            throw Error('CEP is invalid!')
+            throw Error('CEP does not exists!')
         }
 
-        Object.assign(userFromArray, {
+        Object.assign(user, {
+            id,
             name,
             age,
             github_data: { login, avatar_url, repos_url },
             address: responseViacep.data
         })
 
-        return userFromArray
+        return this.repository.save(user)
     }
 
-    delete(id: string): null {
-        const index = this.users.findIndex(user => user.id === id)
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async deleteUser(id: string): Promise<null> {
+        const user = await this.repository.findById(id)
 
-        if (index === -1) {
+        if (!user) {
             throw Error('User does not exists!')
         }
 
-        this.users.splice(index, 1)
-
-        return null
+        return this.repository.remove(id)
     }
 
 }

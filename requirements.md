@@ -1,14 +1,13 @@
 # Cadastro de usuário (Create)
 
 ## RF (Requisitos Funcionais)
-- [x] O usuário deve poder se cadastrar informando os seguintes dados: Nome, Senha, Idade, Github User e CEP
+- [x] O usuário deve poder se cadastrar informando os seguintes dados: Nome, Idade, Github User e CEP
 
 ## RNF (Requisitos Não Funcionais)
 - [x] Utilizar UUID para geração do ID do usuário.
-- [] Utilizar axios para consumir dados das APIs do GitHub e do ViaCEP
-- [] Criar modelo "User" da seguinte forma:
+- [x] Utilizar axios para consumir dados das APIs do GitHub e do ViaCEP
+- [x] Criar modelo "User" da seguinte forma:
   name: string
-  password: string
   age: number
   github_data: {
     login,
@@ -26,19 +25,18 @@
 
 ## RN (Regras de Negócio)
 - [x] O usuário deve ter um ID único.
-- [] (opcional) O usuário deve informar uma senha com no mínimo 6 dígitos.
-- [] O usuário deve informar um Github User existente.
-- [] O usuário deve informar um CEP existente.
+- [x] O usuário deve informar um Github User existente.
+- [x] O usuário deve informar um CEP existente.
 
 ---------------------------------------------------------------------
 
 # Listagem de informações do usuário (Read)
 
 ## RF (Requisitos Funcionais)
-- [] O usuário deve poder visualizar seus dados (Nome, Idade, Dados do Github e Endereco)
+- [x] O usuário deve poder visualizar seus dados (Nome, Idade, Dados do Github e Endereco)
 
 ## RN (Regras de Negócio)
-- [] O usuário não pode visualizar dados de outros usuários.
+- [x] O usuário não pode visualizar dados de uma conta que não existe.
 
 ---------------------------------------------------------------------
 
@@ -49,11 +47,11 @@
 - [x] O usuário deve poder alterar sua senha.
 - [x] O usuário deve poder alterar sua idade.
 - [x] O usuário deve poder alterar seu Github User.
-- [] O usuário deve poder alterar seu Endereço, informando um novo CEP.
+- [x] O usuário deve poder alterar seu Endereço, informando um novo CEP.
 
 ## RN (Regras de Negócio)
-- [] O usuário não pode alterar seu Github User para um username inválido.
-- [] O usuário não pode alterar seu Endereço para um CEP inválido.
+- [x] O usuário não pode alterar seu Github User para um username inválido.
+- [x] O usuário não pode alterar seu Endereço para um CEP inválido.
 
 ---------------------------------------------------------------------
 
@@ -63,5 +61,4 @@
 - [x] O usuário deve poder deletar sua conta.
 
 ## RN (Regras de Negócio)
-- [] O usuário não pode deletar a conta de outros usuários.
-- [] O usuário deve informar uma senha correta para deletar sua conta.
+- [x] O usuário não pode deletar uma conta que não existe.
